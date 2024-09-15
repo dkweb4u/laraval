@@ -1,0 +1,225 @@
+Create laravel project
+>composer create-project laravel/laravel projectName
+Create view page file
+>php artisan make:view filename
+Create  controller
+>php artisan make:controller controllerName
+Create model
+>php artisan make:model modelName
+-------------------------------------------------------
+Create Middleware
+php artisan make:middleware middlewareName
+  Register Middleware in bootstrap/app.php
+$middleware->alias(['mustBeLoggedIn' =>  MustBeLoggedIn::class ]);
+-------------------------------------------------------
+Create Policy
+php artisan make:policy PostPolicy --model=ModelName
+
+Condition in policy for whats operation to run in ModelName Its return true only execute
+  public function delete(User $user, Post $post): bool
+    {
+        return $user->id === $post->user_id;
+    }
+
+Register Policy is providers/AppServiceProvider.php boot method
+    public function boot(): void
+    {
+        Gate::policy(ModelName::class, PolicyClassName::class);
+ 
+    }
+
+      @can('update',$post)
+
+      @endcan
+
+-------------------------------------------------------
+Serve project
+>php artisan Serve
+Avoid Html data
+{{$data}} - double {{$data}} before render the htmlspcial chars
+Load Html data
+{{$data}} - sigle with ! symbol {!! $data !!} avoid the htmlspcial before render
+-----------------------------------------------------------------------
+Create Template
+=>components - Its Keyword for access template
+=>componets/file - add comon codes for here changeing code {{$slot}}
+=> {{$slot}} - mention the changing code 
+=> Grap the file in <x-filename> page data  </x-filename>
+------------------------------------------------------------------------
+Database Connection codes
+>php artisan migrate  -database/migrations/ tables.  manage table and column 
+>php artisan migrate:fresh  -database/migrations/ tables. Its Remove all in Recreate new (so data loose)
+>php artisan make:migration changesName - Without Losing data add column 
+>php artisan make:migration create_posts_table  - create_TableName_table 
+>php artisan make:model Modelname  - Table-control 
+--------------------------------------------------------------------------
+Forms
+@csrf - after form tag opening
+------------------------------------------
+Access Post Request data
+_confirmation - the name to check same or not
+----------------------------------------------------
+Validation:
+ $data = $request->validate(
+            [
+                'username' => 'required',
+                'email' => ['required','min:3',"max:30",Rule::unique('users','email')], // check unique data
+                'password' => ['required','confirmed']
+
+            ]
+        );
+-----------------------------------------------------------
+Insert Table:
+
+ User::create($data);   -> insert table data
+
+ $user =  User::create($data);   // once insert data get back data to the variable
+ 
+-----------------------------------------------------------------
+Login check:
+ auth()->attempt(['username' => $data['loginusername'],'password'=> $data['loginpassword']]) - check value if match return true
+--------------------------------------------------------------
+Auth 
+auth()->check()
+--------------------------------------------------------------
+Error retrun form:
+@error('username') // input name
+              <p class="m-0 small alert alert-danger shadow-sm">{{$message}}</p>
+@enderror
+---------------------------------------------------------------------------
+Return Form oldData:
+ value="{{old('username')}}"  // input name
+---------------------------------------------------------------------------
+Logged In Users Only See Html:
+ @auth // logged in
+
+ @else // No logged in
+
+ @endauth 
+------------------------------------------------------------------
+Access Table Data
+auth()->user()->username   // auth()->modelName()->colname
+
+------------------------------------------------------------------
+Get Current User Id
+auth()->id()   // auth()->id()
+
+==============================================================================================
+SESSION:
+Create and Store Session in Browser
+$request->session()->regenerate();  // if true login success
+---------------------------------------------------------------
+Registered to auto login
+
+$user =  User::create($data);   // once insert data get back data
+auth()->login($user);
+
+---------------------------------------------------------------
+Delete Session in Browser
+auth()->logout();  // delete section
+--------------------------------------------------------------
+Redirect
+redirect('/');
+-------------------------------------------------------------
+Redirect with message
+redirect('/')->->with('success','Registered Successfully');
+-------------------------------------------------------------
+Access message in redirect:
+
+@if(session()->has('success'))  // check Its exist
+
+<div class="container container--narrow flash-ani">
+  <div class="alert alert-success text-center">{{session('success')}}</div> // display data
+</div>
+
+@endif;
+---------------------------------------------------------------
+Table Connection foreignId key
+
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->string('title');
+            $table->longText('body');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
+        });
+    }
+
+foreignId - Its declure id from auother colums
+constrained - Its check the id is exist or not
+onDelete('cascade') - If delete user automaticaly delets posts
+
+---------------------------------------------------------------
+Model Inform comming fillable items in table
+protected $fillable = [
+        'title',
+        'body',
+        'user_id'
+];
+
+---------------------------------------------------------------
+Access another table data  (Id Method) Its default check id
+
+public function user(){  // create method in model
+        return $this->belongsTo(User::class,'user_id');
+}
+
+{{$post->user->username}}  - passingvariable->methodName->columndata
+
+-----------------------------------------
+Access another table data  (Username Method) if set username
+
+    // model to connect another table datas
+    public function posts(){
+        return $this->hasMany(Post::class,'user_id');
+    }
+
+    // here mention table column value
+    Route::get('/profile/{username:username}',[UserController::class,"profile"]);
+
+    // directly access the posttable data to the passing parameter
+    public function profile(User $username){
+        return view('profile-posts',['username'=>$username->username, 'posts' => $username->posts()->latest()->get(),'postCount'=>$username->posts()->count()]);
+    }
+
+-----------------------------------------------------------------
+Get url to get value
+Route::get('/post/{data}',[PostController::class,"viewSinglePost"]);  // passing url
+
+public function viewSinglePost($post){ // name not requred to match
+         return $post;
+}
+------------------------------------------------------------------
+Direct Access table data to url parameter
+
+Route::get('/post/{post}',[PostController::class,"viewSinglePost"]);  // passing url
+
+public function viewSinglePost($post){ // same id requried with model
+         return $post->title;  // directly access data from table
+}
+--------------------------------------------------------------------
+Pass view in data:
+
+   public function viewSinglePost(Post $post){
+         return view('single-post',['post'=>$post]);  // passing the value to variable
+    }
+--------------------------------------------------------------------
+Mark Down - Its string to Html
+
+Str::markdown($post->body);  // Laravel have in this method inbuild
+------------
+// Strip_tags pass second arguments is allow html atteributs
+ $post['body'] = strip_tags(Str::markdown($post->body),'<p>,<ul>,<ol>,<li><strong><em><h3><h4><br>'); 
+
+---------------------------------------------------------------------------
+Middleware
+Route::get('/', [UserController::class,"homepage"])->name('login');
+Route::get('/create-post',[PostController::class,"showCreatePost"])->middleware('auth'); // only login user can access otherwise redirect to where name mentioned login
+
+->middleware('auth') - Login users can access
+->name('login')   - If not logged in redirect url
+->middleware('guest') - If guest means without login access url
+---------------------------------------------------------------------------------
+
