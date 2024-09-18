@@ -68,5 +68,15 @@ class UserController extends Controller
         return view('profile-posts',['username'=>$username->username, 'posts' => $username->posts()->latest()->get(),'postCount'=>$username->posts()->count()]);
     }
 
+    public function manageAvatar(){
+        return view('manage-avatar');
+    }
+
+    public function updateAvatar(Request $request){
+
+        $request->file('avatar')->store('public/avatars');
+        return "Stored File";
+    }
+
 
 }

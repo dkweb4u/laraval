@@ -6,6 +6,8 @@ Create  controller
 >php artisan make:controller controllerName
 Create model
 >php artisan make:model modelName
+Storage link
+>php artisan storage:link
 -------------------------------------------------------
 Create Middleware
 php artisan make:middleware middlewareName
@@ -32,7 +34,58 @@ Register Policy is providers/AppServiceProvider.php boot method
 
       @endcan
 
--------------------------------------------------------
+Controller to access can policy
+
+
+    public function delete(Post $post){
+
+        if(auth()->user()->cannot('delete',$post)){  // cannot() is the policy
+            return 'You Cannot do that';
+        }
+
+       $post->delete();
+
+       return redirect('/profile/'.auth()->user()->username)->with("success","Deleted Successfully");
+
+    }
+
+Medileware to pass policy 
+instead of this:
+        if(auth()->user()->cannot('delete',$post)){  // cannot() is the policy
+            return 'You Cannot do that';
+        }
+
+Pass in middleware 
+
+Route::delete('/post/{post}',[PostController::class,"delete"])->middleware('can:delete,post');
+
+-------------------------------------------------------------------------------------
+Gate Register and call 
+
+        Gate::policy(Post::class, PostPolicy::class); // policy register
+
+        // create get like admin can access
+        Gate::define('visitAdminPages', function($user){   
+            return $user->isAdmin === 1;
+        });
+
+call in meddleware in rourter
+
+->middleware('can:GateDefineName');
+
+
+-----------------------------------------------------------------------------
+Delete data DELETE Request in form
+
+ <form class="delete-post-form d-inline" action="/post/{{$post->id}}" method="POST">
+@csrf
+@method('DELETE')     // method for delete
+-----------------------------------------------------------------------------
+Update data PUT Request in form
+      <form action="/post/{{$post->id}}" method="POST">
+        @csrf
+        @method("PUT")    // method for put
+--------------------------------------------------------------------------
 Serve project
 >php artisan Serve
 Avoid Html data
@@ -52,10 +105,11 @@ Database Connection codes
 >php artisan make:migration changesName - Without Losing data add column 
 >php artisan make:migration create_posts_table  - create_TableName_table 
 >php artisan make:model Modelname  - Table-control 
+>php artisan make:migration add_isadmin_to_users_table --table=users   // update Table in add column or remove
 --------------------------------------------------------------------------
 Forms
 @csrf - after form tag opening
-------------------------------------------
+--------------------------------------------------
 Access Post Request data
 _confirmation - the name to check same or not
 ----------------------------------------------------
@@ -222,4 +276,11 @@ Route::get('/create-post',[PostController::class,"showCreatePost"])->middleware(
 ->name('login')   - If not logged in redirect url
 ->middleware('guest') - If guest means without login access url
 ---------------------------------------------------------------------------------
+File Upload 
+
+Default path is storage/app/private/folders
+
+>php artisan storage:link   -Create the link main public folder
+
+-------------------------------------------------------------------------------
 
