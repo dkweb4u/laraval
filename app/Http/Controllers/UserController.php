@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Intervention\Image\ImageManager;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class UserController extends Controller
 {
@@ -65,7 +68,7 @@ class UserController extends Controller
     }
 
     public function profile(User $username){
-        return view('profile-posts',['username'=>$username->username, 'posts' => $username->posts()->latest()->get(),'postCount'=>$username->posts()->count()]);
+        return view('profile-posts',['avatar'=>$username->avatar,'username'=>$username->username, 'posts' => $username->posts()->latest()->get(),'postCount'=>$username->posts()->count()]);
     }
 
     public function manageAvatar(){
@@ -74,8 +77,32 @@ class UserController extends Controller
 
     public function updateAvatar(Request $request){
 
-        $request->file('avatar')->store('public/avatars');
-        return "Stored File";
+        $request->validate([
+            'avatar' => 'required|image|max:3000'
+        ]);
+
+        $user = auth()->user();
+
+        $filename = $user->id."-". uniqid() .'.jpg';
+
+        $manager = new ImageManager(new Driver());
+
+        $image =  $manager->read($request->file('avatar'));
+
+        $imgData = $image->cover(120,120)->toJpeg();
+        
+        Storage::put("public/avatar/".$filename,$imgData);
+
+        $oldphoto = $user->avatar;
+
+        $user->avatar = $filename;
+
+        $user->save();
+
+    //    unlink(public_path($oldphoto));
+
+        Storage::delete("public/".$oldphoto);
+
     }
 
 

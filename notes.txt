@@ -1,3 +1,7 @@
+Image Resize
+>composer require intervention/image
+
+------------------------------------------------------------------------
 Create laravel project
 >composer create-project laravel/laravel projectName
 Create view page file
@@ -7,7 +11,7 @@ Create  controller
 Create model
 >php artisan make:model modelName
 Storage link
->php artisan storage:link
+>php artisan storage:link   // default private folder select chnage config/filesystem.php
 -------------------------------------------------------
 Create Middleware
 php artisan make:middleware middlewareName
