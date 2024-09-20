@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FollowController;
 
 
 // Gate in inside controller
@@ -31,6 +32,9 @@ Route::post('/logout',[UserController::class,"logout"])->middleware('mustBeLogge
 Route::get('/manage-avatar',[UserController::class,"manageAvatar"])->middleware('mustBeLoggedIn');
 Route::post('/manage-avatar',[UserController::class,"updateAvatar"])->middleware('mustBeLoggedIn');
 
+// Follow related Routes
+Route::post('/create-follow/{user:username}',[FollowController::class,"createFollow"]);
+Route::post('/remove-follow/{user:username}',[FollowController::class,"removeFollow"]);
 
 // Blog related Routes
 Route::get('/create-post',[PostController::class,"showCreatePost"])->middleware('mustBeLoggedIn');

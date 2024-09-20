@@ -82,7 +82,7 @@ class UserController extends Controller
         ]);
 
         $user = auth()->user();
-
+        
         $filename = $user->id."-". uniqid() .'.jpg';
 
         $manager = new ImageManager(new Driver());
@@ -101,7 +101,11 @@ class UserController extends Controller
 
     //    unlink(public_path($oldphoto));
 
-        Storage::delete("public/".$oldphoto);
+    if($oldphoto  != $filename){
+        Storage::delete(str_replace("storage/","",$oldphoto));
+    }
+     
+       return back()->with("success",$oldphoto);
 
     }
 
