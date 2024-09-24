@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Follow;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Intervention\Image\ImageManager;
@@ -68,7 +69,19 @@ class UserController extends Controller
     }
 
     public function profile(User $username){
-        return view('profile-posts',['avatar'=>$username->avatar,'username'=>$username->username, 'posts' => $username->posts()->latest()->get(),'postCount'=>$username->posts()->count()]);
+        
+        $currentUserFollowedUser = 0;
+
+        if(auth()->check()){
+            $currentUserFollowedUser = Follow::where('user_id',auth()->user()->id)->where('followeduser',$username->id)->count();
+        }
+
+        return view('profile-posts',['avatar'=>$username->avatar,
+        'username'=>$username->username, 
+        'posts' => $username->posts()->latest()->get(),
+        'postCount'=>$username->posts()->count(),
+        'currentlyFollowing' => $currentUserFollowedUser
+      ]);
     }
 
     public function manageAvatar(){
@@ -81,9 +94,13 @@ class UserController extends Controller
             'avatar' => 'required|image|max:3000'
         ]);
 
+        // $request->file('avatar')->store('public/avatars'); direct Upload
+
         $user = auth()->user();
         
+        
         $filename = $user->id."-". uniqid() .'.jpg';
+
 
         $manager = new ImageManager(new Driver());
 

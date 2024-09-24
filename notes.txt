@@ -108,7 +108,7 @@ Database Connection codes
 >php artisan migrate:fresh  -database/migrations/ tables. Its Remove all in Recreate new (so data loose)
 >php artisan make:migration changesName - Without Losing data add column 
 >php artisan make:migration create_posts_table  - create_TableName_table 
->php artisan make:model Modelname  - Table-control 
+>php artisan make:model Modelname -m      -- crate table with model 
 >php artisan make:migration add_isadmin_to_users_table --table=users   // update Table in add column or remove
 --------------------------------------------------------------------------
 Forms

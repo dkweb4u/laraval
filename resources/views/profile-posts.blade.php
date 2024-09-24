@@ -3,15 +3,42 @@
 <div class="container py-md-5 container--narrow">
       <h2>
         <img class="avatar-small" src="{{$avatar}}" /> {{$username}}
-        <form class="ml-2 d-inline" action="#" method="POST">
+
+        @auth
+
+        @if(!$currentlyFollowing)
+
+        <form class="ml-2 d-inline" action="/create-follow/{{$username}}" method="POST">
+          @csrf
+
+          @if($username  != auth()->user()->username)
+
           <button class="btn btn-primary btn-sm">Follow <i class="fas fa-user-plus"></i></button>
        
+          @endif
           <!-- <button class="btn btn-danger btn-sm">Stop Following <i class="fas fa-user-times"></i></button> -->
        
           @if(auth()->user()->username  == $username) 
           <a href="/manage-avatar" class="btn btn-secondary btn-sm">Manage Avatar</a>
           @endif
         </form>
+
+        @else
+
+        <form class="ml-2 d-inline" action="/remove-follow/{{$username}}" method="POST">
+          @csrf
+          <button class="btn btn-danger btn-sm">Stop Following <i class="fas fa-user-times"></i></button>
+       
+          @if(auth()->user()->username  == $username) 
+          <a href="/manage-avatar" class="btn btn-secondary btn-sm">Manage Avatar</a>
+          @endif
+        </form>
+
+        @endif
+
+        @endauth
+
+
       </h2>
 
       <div class="profile-nav nav nav-tabs pt-2 mb-4">
